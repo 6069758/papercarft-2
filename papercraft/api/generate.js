@@ -3,11 +3,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const apiKey = process.env.GEMINI_API_KEY;
-
-  if (!apiKey) {
-    return res.status(500).json({ error: 'API key not configured on server' });
-  }
+  const apiKey = "AIzaSyA38kjmjnC9kle_3CMk56F1EVzA6rmKVAA";
 
   try {
     const { messages, max_tokens } = req.body;
@@ -30,7 +26,7 @@ export default async function handler(req, res) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           contents,
-          generationConfig: { maxOutputTokens: max_tokens || 2000 }
+          generationConfig: { maxOutputTokens: 2000 }
         })
       }
     );
