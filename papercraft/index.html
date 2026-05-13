@@ -3,484 +3,283 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PaperCraft — Smart Question Paper Formatter</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet">
+<title>PaperCraft — AI Question Paper Formatter</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,400&display=swap" rel="stylesheet">
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ink:#12121f;--ink2:#3a3a5c;--ink3:#8888aa;
+  --bg:#f4f3ef;--surface:#ffffff;--surface2:#f0efe9;--surface3:#e8e6de;
+  --accent:#e8522a;--accent2:#ff7a50;--green:#1a9e6e;
+  --border:#dddbd2;--radius:14px;
+  --shadow:0 2px 16px rgba(18,18,31,0.07);
+}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);min-height:100vh}
 
-  :root {
-    --ink: #1a1a2e;
-    --ink2: #3d3d5c;
-    --ink3: #7c7c9a;
-    --surface: #ffffff;
-    --surface2: #f5f4f0;
-    --surface3: #eeecea;
-    --accent: #e85d2f;
-    --accent2: #ff8c5a;
-    --green: #1a9e6e;
-    --border: #e0ddd8;
-    --radius: 12px;
-    --shadow: 0 2px 12px rgba(26,26,46,0.08);
-  }
+/* NAV */
+nav{background:var(--ink);height:58px;display:flex;align-items:center;justify-content:space-between;padding:0 2rem;position:sticky;top:0;z-index:100}
+.logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.25rem;color:#fff;letter-spacing:-0.5px}
+.logo span{color:var(--accent2)}
+.nav-pill{font-size:11.5px;color:rgba(255,255,255,0.5);background:rgba(255,255,255,0.08);padding:4px 12px;border-radius:20px}
 
-  body {
-    font-family: 'DM Sans', sans-serif;
-    background: var(--surface2);
-    color: var(--ink);
-    min-height: 100vh;
-  }
+/* LAYOUT */
+.wrap{max-width:1080px;margin:0 auto;padding:2rem 1.5rem}
 
-  nav {
-    background: var(--ink);
-    padding: 0 2rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    height: 60px;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-  }
-  .logo {
-    font-family: 'Syne', sans-serif;
-    font-weight: 800;
-    font-size: 1.3rem;
-    color: #fff;
-    letter-spacing: -0.5px;
-  }
-  .logo span { color: var(--accent2); }
-  .nav-tag {
-    font-size: 12px;
-    background: rgba(255,255,255,0.1);
-    color: rgba(255,255,255,0.6);
-    padding: 4px 12px;
-    border-radius: 20px;
-  }
+/* STEPS */
+.steps{display:flex;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:1.75rem}
+.step{flex:1;padding:.9rem 1.2rem;display:flex;align-items:center;gap:10px;border-right:1px solid var(--border);cursor:pointer;opacity:.4;transition:all .2s}
+.step:last-child{border-right:none}
+.step.active{opacity:1;background:var(--surface2)}
+.step.done{opacity:.7}
+.snum{width:26px;height:26px;border-radius:50%;background:var(--surface3);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:700;font-size:12px;color:var(--ink2);flex-shrink:0}
+.step.active .snum{background:var(--accent);color:#fff}
+.step.done .snum{background:var(--green);color:#fff}
+.slabel{font-size:13px;font-weight:500;color:var(--ink2)}
+.ssub{font-size:11px;color:var(--ink3)}
 
-  .container { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; }
+/* PANEL */
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:2rem;display:none}
+.panel.active{display:block}
+.ptitle{font-family:'Syne',sans-serif;font-size:1.35rem;font-weight:700;margin-bottom:.3rem}
+.pdesc{font-size:13.5px;color:var(--ink3);margin-bottom:1.75rem;line-height:1.6}
 
-  .steps-bar {
-    display: flex;
-    margin-bottom: 2rem;
-    background: var(--surface);
-    border-radius: var(--radius);
-    border: 1px solid var(--border);
-    overflow: hidden;
-  }
-  .step-tab {
-    flex: 1;
-    padding: 1rem 1.25rem;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    cursor: pointer;
-    transition: background 0.2s;
-    border-right: 1px solid var(--border);
-    opacity: 0.45;
-  }
-  .step-tab:last-child { border-right: none; }
-  .step-tab.active { opacity: 1; background: var(--surface2); }
-  .step-tab.done { opacity: 0.75; }
-  .step-num {
-    width: 28px; height: 28px;
-    border-radius: 50%;
-    background: var(--surface3);
-    display: flex; align-items: center; justify-content: center;
-    font-family: 'Syne', sans-serif;
-    font-weight: 700;
-    font-size: 13px;
-    color: var(--ink2);
-    flex-shrink: 0;
-  }
-  .step-tab.active .step-num { background: var(--accent); color: #fff; }
-  .step-tab.done .step-num { background: var(--green); color: #fff; }
-  .step-label { font-size: 13.5px; font-weight: 500; color: var(--ink2); line-height: 1.3; }
-  .step-sub { font-size: 11.5px; color: var(--ink3); font-weight: 400; }
+/* FORM */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.2rem}
+.fgroup{display:flex;flex-direction:column;gap:5px}
+.fgroup label{font-size:12.5px;font-weight:500;color:var(--ink2)}
+input[type=text],select,textarea{width:100%;border:1px solid var(--border);border-radius:9px;padding:9px 12px;font-family:'DM Sans',sans-serif;font-size:13.5px;color:var(--ink);background:var(--surface);outline:none;transition:border-color .2s}
+input[type=text]:focus,select:focus,textarea:focus{border-color:var(--accent)}
+textarea{resize:vertical;line-height:1.7}
+textarea::placeholder,input::placeholder{color:var(--ink3)}
 
-  .panel {
-    background: var(--surface);
-    border-radius: var(--radius);
-    border: 1px solid var(--border);
-    padding: 2rem;
-    display: none;
-  }
-  .panel.active { display: block; }
+/* UPLOAD */
+.upzone{border:2px dashed var(--border);border-radius:var(--radius);padding:2rem;text-align:center;cursor:pointer;background:var(--surface2);position:relative;transition:all .2s;margin-bottom:1rem}
+.upzone:hover{border-color:var(--accent);background:#fff8f5}
+.upzone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.upzone-title{font-family:'Syne',sans-serif;font-weight:600;font-size:.9rem;margin-bottom:.2rem}
+.upzone-sub{font-size:12px;color:var(--ink3)}
 
-  .panel-title {
-    font-family: 'Syne', sans-serif;
-    font-size: 1.4rem;
-    font-weight: 700;
-    color: var(--ink);
-    margin-bottom: 0.4rem;
-  }
-  .panel-desc {
-    font-size: 14px;
-    color: var(--ink3);
-    margin-bottom: 1.75rem;
-    line-height: 1.6;
-  }
+/* SAVED */
+.saved-bar{display:none;align-items:center;gap:12px;padding:.9rem 1.1rem;background:#f0faf5;border:1px solid #b8e8d4;border-radius:var(--radius);margin-bottom:1.2rem}
+.saved-bar.on{display:flex}
+.saved-dot{width:32px;height:32px;background:#d1f3e5;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.saved-name{font-weight:500;font-size:13.5px;color:#0f5e3b}
+.saved-change{font-size:12px;color:#3a9e73;cursor:pointer;text-decoration:underline}
 
-  .upload-zone {
-    border: 2px dashed var(--border);
-    border-radius: var(--radius);
-    padding: 3rem 2rem;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.2s;
-    background: var(--surface2);
-    position: relative;
-  }
-  .upload-zone:hover { border-color: var(--accent); background: #fff5f2; }
-  .upload-zone input[type=file] {
-    position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
-  }
-  .upload-icon {
-    width: 52px; height: 52px;
-    background: var(--surface3);
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    margin: 0 auto 1rem;
-  }
-  .upload-icon svg { width: 24px; height: 24px; stroke: var(--ink2); }
-  .upload-title { font-family: 'Syne', sans-serif; font-weight: 600; font-size: 1rem; color: var(--ink); margin-bottom: 0.3rem; }
-  .upload-hint { font-size: 13px; color: var(--ink3); }
+/* OR */
+.or{display:flex;align-items:center;gap:1rem;margin:1.2rem 0;color:var(--ink3);font-size:12.5px}
+.or::before,.or::after{content:'';flex:1;height:1px;background:var(--border)}
 
-  .template-saved {
-    display: none;
-    align-items: center;
-    gap: 1rem;
-    padding: 1rem 1.25rem;
-    background: #f0faf5;
-    border: 1px solid #b8e8d4;
-    border-radius: var(--radius);
-    margin-bottom: 1.5rem;
-  }
-  .template-saved.visible { display: flex; }
-  .saved-icon {
-    width: 36px; height: 36px; background: #d1f3e5; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-  }
-  .saved-icon svg { width: 18px; height: 18px; stroke: var(--green); }
-  .saved-name { font-weight: 500; font-size: 14px; color: #0f5e3b; }
-  .saved-sub { font-size: 12px; color: #3a9e73; }
+/* QTYPES */
+.qtypes{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:1.3rem}
+.qt{padding:5px 13px;border-radius:20px;font-size:12.5px;border:1px solid var(--border);cursor:pointer;transition:all .15s;background:var(--surface);color:var(--ink2);user-select:none}
+.qt.on{background:var(--ink);color:#fff;border-color:var(--ink);font-weight:500}
 
-  .or-divider {
-    display: flex; align-items: center; gap: 1rem;
-    margin: 1.5rem 0;
-    color: var(--ink3); font-size: 13px;
-  }
-  .or-divider::before, .or-divider::after {
-    content: ''; flex: 1; height: 1px; background: var(--border);
-  }
+/* BTNS */
+.btn{display:inline-flex;align-items:center;gap:7px;padding:10px 20px;border-radius:8px;font-family:'DM Sans',sans-serif;font-weight:500;font-size:14px;cursor:pointer;transition:all .15s;border:none}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{background:#c94320}
+.btn-ghost{background:var(--surface2);color:var(--ink2);border:1px solid var(--border)}
+.btn-ghost:hover{background:var(--surface3)}
+.btn-green{background:var(--green);color:#fff}
+.btn-green:hover{background:#157a55}
+.btn-blue{background:#2563eb;color:#fff}
+.btn-blue:hover{background:#1d4ed8}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:1.2rem}
 
-  textarea {
-    width: 100%;
-    min-height: 140px;
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 1rem;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 14px;
-    line-height: 1.7;
-    color: var(--ink);
-    background: var(--surface);
-    resize: vertical;
-    transition: border-color 0.2s;
-    outline: none;
-  }
-  textarea:focus { border-color: var(--accent); }
-  textarea::placeholder { color: var(--ink3); }
+/* LOADING */
+.loading{display:none;flex-direction:column;align-items:center;padding:3rem;gap:1rem;text-align:center}
+.loading.on{display:flex}
+.spinner{width:38px;height:38px;border:3px solid var(--surface3);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.lstage{font-size:13px;color:var(--ink3);font-style:italic}
 
-  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.25rem; }
-  .form-group { display: flex; flex-direction: column; gap: 6px; }
-  .form-group label { font-size: 13px; font-weight: 500; color: var(--ink2); }
-  input[type=text], select {
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 9px 12px;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 14px;
-    color: var(--ink);
-    background: var(--surface);
-    outline: none;
-    transition: border-color 0.2s;
-    width: 100%;
-  }
-  input[type=text]:focus, select:focus { border-color: var(--accent); }
+/* OUTPUT */
+.outbox{display:none}
+.outbox.on{display:block}
+.out-actions{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.2rem;flex-wrap:wrap;gap:10px}
+.out-title{font-family:'Syne',sans-serif;font-weight:700;font-size:1rem}
+.out-btns{display:flex;gap:8px;flex-wrap:wrap}
 
-  .qtype-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 1.5rem; }
-  .qtype-tag {
-    padding: 6px 14px; border-radius: 20px; font-size: 13px;
-    border: 1px solid var(--border); cursor: pointer;
-    transition: all 0.15s; background: var(--surface); color: var(--ink2);
-    font-weight: 400; user-select: none;
-  }
-  .qtype-tag.active { background: var(--ink); color: #fff; border-color: var(--ink); font-weight: 500; }
+/* PAPER */
+.paper{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:3rem;font-family:'DM Sans',sans-serif;font-size:14px;line-height:2;color:#111;box-shadow:var(--shadow);white-space:pre-wrap;min-height:300px}
 
-  .btn {
-    display: inline-flex; align-items: center; gap: 8px;
-    padding: 11px 22px;
-    border-radius: 8px;
-    font-family: 'DM Sans', sans-serif;
-    font-weight: 500;
-    font-size: 14.5px;
-    cursor: pointer;
-    transition: all 0.15s;
-    border: none;
-  }
-  .btn-primary { background: var(--accent); color: #fff; }
-  .btn-primary:hover { background: #d14e24; }
-  .btn-ghost { background: var(--surface2); color: var(--ink2); border: 1px solid var(--border); }
-  .btn-ghost:hover { background: var(--surface3); }
-  .btn-green { background: var(--green); color: #fff; }
-  .btn-green:hover { background: #157a55; }
+/* TOAST */
+.toast{position:fixed;bottom:2rem;right:2rem;background:var(--ink);color:#fff;padding:11px 18px;border-radius:8px;font-size:13.5px;opacity:0;transition:opacity .3s;z-index:999;pointer-events:none}
+.toast.on{opacity:1}
 
-  .loading-box {
-    display: none;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 3rem 2rem;
-    gap: 1rem;
-    text-align: center;
-  }
-  .loading-box.visible { display: flex; }
-  .spinner {
-    width: 40px; height: 40px;
-    border: 3px solid var(--surface3);
-    border-top-color: var(--accent);
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  .loading-stage { font-size: 13px; color: var(--ink3); font-style: italic; }
+/* PHOTO PREVIEW */
+#photoWrap{display:none;margin-top:8px}
+#photoWrap img{max-height:160px;border-radius:8px;border:1px solid var(--border)}
 
-  .output-box { display: none; }
-  .output-box.visible { display: block; }
-  .output-actions {
-    display: flex; align-items: center; justify-content: space-between;
-    margin-bottom: 1.25rem; flex-wrap: wrap; gap: 12px;
-  }
-  .output-label { font-family: 'Syne', sans-serif; font-weight: 600; font-size: 1rem; }
-  .paper-preview {
-    background: #fff;
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 2.5rem;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 14px;
-    line-height: 1.9;
-    color: #111;
-    white-space: pre-wrap;
-    box-shadow: var(--shadow);
-    min-height: 300px;
-  }
-
-  .toast {
-    position: fixed; bottom: 2rem; right: 2rem;
-    background: var(--ink); color: #fff;
-    padding: 12px 20px; border-radius: 8px;
-    font-size: 14px; opacity: 0;
-    transition: opacity 0.3s;
-    z-index: 999; pointer-events: none;
-  }
-  .toast.show { opacity: 1; }
-
-  @media (max-width: 640px) {
-    .form-row { grid-template-columns: 1fr; }
-    .step-label { font-size: 12px; }
-    .step-sub { display: none; }
-    .panel { padding: 1.25rem; }
-    .paper-preview { padding: 1.25rem; }
-  }
+@media(max-width:640px){
+  .grid2{grid-template-columns:1fr}
+  .slabel{font-size:11.5px}.ssub{display:none}
+  .panel{padding:1.2rem}.paper{padding:1.5rem}
+  .steps{overflow-x:auto}
+}
 </style>
 </head>
 <body>
 
 <nav>
   <div class="logo">Paper<span>Craft</span></div>
-  <span class="nav-tag">AI Question Paper Formatter</span>
+  <span class="nav-pill">AI Question Paper Formatter</span>
 </nav>
 
-<div class="container">
+<div class="wrap">
 
-  <div class="steps-bar">
-    <div class="step-tab active" id="tab1" onclick="goStep(1)">
-      <div class="step-num" id="snum1">1</div>
-      <div>
-        <div class="step-label">Template</div>
-        <div class="step-sub">Upload your format</div>
-      </div>
+  <div class="steps">
+    <div class="step active" id="tab1" onclick="goStep(1)">
+      <div class="snum" id="sn1">1</div>
+      <div><div class="slabel">Template</div><div class="ssub">Your paper format</div></div>
     </div>
-    <div class="step-tab" id="tab2" onclick="goStep(2)">
-      <div class="step-num" id="snum2">2</div>
-      <div>
-        <div class="step-label">Add Questions</div>
-        <div class="step-sub">Type or upload photo</div>
-      </div>
+    <div class="step" id="tab2" onclick="goStep(2)">
+      <div class="snum" id="sn2">2</div>
+      <div><div class="slabel">Questions</div><div class="ssub">Type or photo</div></div>
     </div>
-    <div class="step-tab" id="tab3" onclick="goStep(3)">
-      <div class="step-num" id="snum3">3</div>
-      <div>
-        <div class="step-label">Get Paper</div>
-        <div class="step-sub">Download formatted</div>
-      </div>
+    <div class="step" id="tab3" onclick="goStep(3)">
+      <div class="snum" id="sn3">3</div>
+      <div><div class="slabel">Export</div><div class="ssub">Download paper</div></div>
     </div>
   </div>
 
-  <!-- STEP 1: TEMPLATE -->
+  <!-- STEP 1 -->
   <div class="panel active" id="panel1">
-    <div class="panel-title">Upload your question paper template</div>
-    <div class="panel-desc">Upload a past question paper or format. PaperCraft will learn your school's style — header, marks layout, section breaks — and replicate it every time.</div>
+    <div class="ptitle">Set your question paper template</div>
+    <div class="pdesc">Describe your school's format once. PaperCraft will use it every time to format new papers.</div>
 
-    <div class="template-saved" id="templateSaved">
-      <div class="saved-icon">
-        <svg fill="none" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-      </div>
+    <div class="saved-bar" id="savedBar">
+      <div class="saved-dot"><svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="#1a9e6e"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg></div>
       <div>
-        <div class="saved-name" id="savedTemplateName">Template saved</div>
-        <div class="saved-sub">Your format is ready · <span onclick="clearTemplate()" style="cursor:pointer;text-decoration:underline">Change template</span></div>
+        <div class="saved-name" id="savedName">Template saved</div>
+        <div><span class="saved-change" onclick="clearTpl()">Change template</span></div>
       </div>
     </div>
 
-    <div class="upload-zone" id="templateZone">
-      <input type="file" id="templateFile" accept=".pdf,.doc,.docx,.txt,image/*" onchange="handleTemplateUpload(this)">
-      <div class="upload-icon">
-        <svg fill="none" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>
-      </div>
-      <div class="upload-title">Drop your question paper format here</div>
-      <div class="upload-hint">PDF, Word, image, or plain text · Max 10MB</div>
+    <div class="upzone" id="upzone">
+      <input type="file" id="tplFile" accept=".pdf,.doc,.docx,.txt,image/*" onchange="handleTplFile(this)">
+      <div class="upzone-title">Drop a past question paper here</div>
+      <div class="upzone-sub">PDF, Word, image or text — AI will learn your format</div>
     </div>
 
-    <div class="or-divider">or describe your format manually</div>
+    <div class="or">or describe your format below</div>
 
-    <textarea id="templateText" placeholder="Describe your format here. For example:
-• School name centered at top, then exam title, class, subject, date, time, max marks
-• Section A: 10 MCQs × 1 mark each
-• Section B: 5 Short answers × 2 marks each
-• Section C: 3 Long answers × 5 marks each
-• Instructions: Attempt all questions. Write neatly."></textarea>
+    <textarea id="tplText" rows="7" placeholder="Example:
+School name centered at top. Then: Subject | Class | Max Marks | Time | Date
+Section A: 10 MCQs × 1 mark = 10 marks
+Section B: 5 short answer questions × 2 marks = 10 marks  
+Section C: 3 long answer questions × 5 marks = 15 marks
+Instructions: All questions compulsory. Write neatly."></textarea>
 
-    <div style="margin-top: 1.25rem; display:flex; gap:10px; flex-wrap:wrap;">
-      <button class="btn btn-primary" onclick="saveTemplate()">
-        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z"/></svg>
-        Save Template & Continue
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="saveTpl()">
+        <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z"/></svg>
+        Save & Continue
       </button>
     </div>
   </div>
 
-  <!-- STEP 2: QUESTIONS -->
+  <!-- STEP 2 -->
   <div class="panel" id="panel2">
-    <div class="panel-title">Add your questions</div>
-    <div class="panel-desc">Type questions, paste them, or upload a photo of handwritten questions. AI will format everything to match your template.</div>
+    <div class="ptitle">Add your questions</div>
+    <div class="pdesc">Paste questions, type them, or upload a photo of handwritten questions. Don't worry about formatting — AI handles that.</div>
 
-    <div class="form-row">
-      <div class="form-group">
-        <label>Subject</label>
-        <input type="text" id="subject" placeholder="e.g. Mathematics, Science...">
-      </div>
-      <div class="form-group">
-        <label>Class / Grade</label>
-        <input type="text" id="grade" placeholder="e.g. Class 10, Grade 8...">
-      </div>
+    <div class="grid2">
+      <div class="fgroup"><label>Subject</label><input type="text" id="subject" placeholder="e.g. Mathematics, Science..."></div>
+      <div class="fgroup"><label>Class / Grade</label><input type="text" id="grade" placeholder="e.g. Class 10, Grade 8..."></div>
     </div>
-
-    <div class="form-row">
-      <div class="form-group">
+    <div class="grid2">
+      <div class="fgroup">
         <label>Exam Type</label>
         <select id="examType">
-          <option value="Unit Test">Unit Test</option>
-          <option value="Mid-term Exam">Mid-term Exam</option>
-          <option value="Final Exam" selected>Final Exam</option>
-          <option value="Weekly Test">Weekly Test</option>
-          <option value="Practice Paper">Practice Paper</option>
+          <option>Unit Test</option><option>Mid-term Exam</option>
+          <option selected>Final Exam</option><option>Weekly Test</option><option>Practice Paper</option>
         </select>
       </div>
-      <div class="form-group">
-        <label>Total Marks</label>
-        <input type="text" id="totalMarks" placeholder="e.g. 80, 100...">
+      <div class="fgroup"><label>Total Marks</label><input type="text" id="marks" placeholder="e.g. 80, 100..."></div>
+    </div>
+
+    <div class="fgroup" style="margin-bottom:1rem">
+      <label style="margin-bottom:7px">Question types</label>
+      <div class="qtypes">
+        <div class="qt on" onclick="tQt(this)">MCQ</div>
+        <div class="qt on" onclick="tQt(this)">Short Answer</div>
+        <div class="qt on" onclick="tQt(this)">Long Answer</div>
+        <div class="qt" onclick="tQt(this)">Fill in the Blank</div>
+        <div class="qt" onclick="tQt(this)">True / False</div>
+        <div class="qt" onclick="tQt(this)">Match the Column</div>
+        <div class="qt" onclick="tQt(this)">Diagram Based</div>
       </div>
     </div>
 
-    <div style="margin-bottom: 0.75rem;">
-      <div class="form-group" style="margin-bottom: 8px;"><label>Question types in this paper</label></div>
-      <div class="qtype-row" id="qtypeRow">
-        <div class="qtype-tag active" onclick="toggleQtype(this)">MCQ</div>
-        <div class="qtype-tag active" onclick="toggleQtype(this)">Short Answer</div>
-        <div class="qtype-tag active" onclick="toggleQtype(this)">Long Answer</div>
-        <div class="qtype-tag" onclick="toggleQtype(this)">Fill in the Blank</div>
-        <div class="qtype-tag" onclick="toggleQtype(this)">True / False</div>
-        <div class="qtype-tag" onclick="toggleQtype(this)">Match the Column</div>
-        <div class="qtype-tag" onclick="toggleQtype(this)">Diagram Based</div>
-      </div>
-    </div>
-
-    <div class="form-group" style="margin-bottom: 1rem;">
-      <label>Paste your questions here</label>
-      <textarea id="questionsText" style="min-height:200px" placeholder="Paste all your questions here. Don't worry about formatting — just write them out.
+    <div class="fgroup" style="margin-bottom:1rem">
+      <label>Paste your questions</label>
+      <textarea id="qText" rows="9" style="margin-top:5px" placeholder="Paste all questions here — any format is fine.
 
 Example:
 1. What is photosynthesis? (3 marks)
 2. Name the parts of a plant cell.
-3. Differentiate between mitosis and meiosis. (5 marks)
-4. Which of these is NOT a part of the cell? a) Nucleus b) Mitochondria c) Chlorophyll d) Ribosome"></textarea>
+3. Differentiate between mitosis and meiosis.
+a) Nucleus b) Mitochondria c) Chlorophyll d) Ribosome
+
+Paste as many as you want. AI will organise and format everything."></textarea>
     </div>
 
-    <div class="or-divider">or upload a photo of handwritten questions</div>
-
-    <div class="upload-zone" id="photoZone" style="padding: 1.5rem 2rem;">
-      <input type="file" id="photoFile" accept="image/*" onchange="handlePhotoUpload(this)">
-      <div style="display:flex; align-items:center; gap:12px; justify-content:center;">
-        <div class="upload-icon" style="width:40px;height:40px;margin:0;flex-shrink:0">
-          <svg fill="none" viewBox="0 0 24 24" stroke-width="1.5" style="width:20px;height:20px;stroke:var(--ink2)"><path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z"/><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z"/></svg>
-        </div>
-        <div>
-          <div class="upload-title" style="font-size:14px; text-align:left;">Upload photo of questions</div>
-          <div class="upload-hint">AI will extract and read your handwritten questions</div>
-        </div>
+    <div class="or">or upload a photo of handwritten questions</div>
+    <div class="upzone" style="padding:1.2rem 2rem">
+      <input type="file" id="photoFile" accept="image/*" onchange="handlePhoto(this)">
+      <div style="display:flex;align-items:center;gap:10px;justify-content:center">
+        <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="var(--ink3)"><path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z"/><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0z"/></svg>
+        <div><div class="upzone-title" style="font-size:13.5px;text-align:left">Upload photo of questions</div><div class="upzone-sub">AI will extract text automatically</div></div>
       </div>
     </div>
-    <div id="photoPreviewArea" style="margin-top:10px;display:none;">
-      <img id="photoPreview" style="max-height:180px; border-radius:8px; border:1px solid var(--border);" />
-      <div style="font-size:12px;color:var(--green);margin-top:6px;">✓ Photo uploaded — AI will extract text from this</div>
-    </div>
+    <div id="photoWrap"><img id="photoPreview"/><div style="font-size:12px;color:var(--green);margin-top:5px">✓ Photo ready — AI will extract questions</div></div>
 
-    <div style="margin-top: 1.5rem; display:flex; gap:10px; flex-wrap:wrap;">
+    <div class="btn-row">
       <button class="btn btn-ghost" onclick="goStep(1)">← Back</button>
-      <button class="btn btn-primary" onclick="generatePaper()">
-        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/></svg>
-        Generate Formatted Paper
+      <button class="btn btn-primary" onclick="generate()">
+        <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/></svg>
+        Generate Paper
       </button>
     </div>
   </div>
 
-  <!-- STEP 3: OUTPUT -->
+  <!-- STEP 3 -->
   <div class="panel" id="panel3">
-    <div class="loading-box" id="loadingBox">
+    <div class="loading" id="loadBox">
       <div class="spinner"></div>
-      <div style="font-size:14px;color:var(--ink3);">Formatting your question paper...</div>
-      <div class="loading-stage" id="loadingStage">Reading your template</div>
+      <div style="font-size:14px;color:var(--ink3)">Formatting your question paper...</div>
+      <div class="lstage" id="lstage">Reading template</div>
     </div>
 
-    <div class="output-box" id="outputBox">
-      <div class="output-actions">
-        <div class="output-label">Your formatted question paper</div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;">
-          <button class="btn btn-ghost" onclick="copyPaper()">
-            <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5a1.125 1.125 0 01-1.125-1.125v-1.5a3.375 3.375 0 00-3.375-3.375H9.375"/></svg>
-            Copy Text
+    <div class="outbox" id="outBox">
+      <div class="out-actions">
+        <div class="out-title">Your formatted question paper</div>
+        <div class="out-btns">
+          <button class="btn btn-ghost" onclick="copyText()">
+            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5a1.125 1.125 0 01-1.125-1.125v-1.5a3.375 3.375 0 00-3.375-3.375H9.375"/></svg>
+            Copy
           </button>
           <button class="btn btn-ghost" onclick="printPaper()">
-            <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0l.229 2.523a1.125 1.125 0 01-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0021 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 00-1.913-.247M6.34 18H5.25A2.25 2.25 0 013 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.056 48.056 0 011.913-.247m10.5 0a48.536 48.536 0 00-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5zm-3 0h.008v.008H15V10.5z"/></svg>
+            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0l.229 2.523a1.125 1.125 0 01-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0021 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 00-1.913-.247M6.34 18H5.25A2.25 2.25 0 013 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.056 48.056 0 011.913-.247m10.5 0a48.536 48.536 0 00-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5zm-3 0h.008v.008H15V10.5z"/></svg>
             Print
           </button>
-          <button class="btn btn-green" onclick="makeAnother()">Make Another →</button>
+          <button class="btn btn-blue" onclick="exportWord()">
+            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m.75 12l3 3m0 0l3-3m-3 3v-6m-1.5-9H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>
+            Export Word
+          </button>
+          <button class="btn btn-green" onclick="exportPDF()">
+            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m.75 12l3 3m0 0l3-3m-3 3v-6m-1.5-9H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>
+            Export PDF
+          </button>
+          <button class="btn btn-ghost" onclick="makeAnother()">New Paper →</button>
         </div>
       </div>
-      <div class="paper-preview" id="paperOutput"></div>
+      <div class="paper" id="paperOut"></div>
     </div>
 
-    <div style="margin-top:1.5rem;display:flex;gap:10px;" id="backBtns">
+    <div style="margin-top:1.2rem;display:flex;gap:8px" id="backRow">
       <button class="btn btn-ghost" onclick="goStep(2)">← Edit Questions</button>
     </div>
   </div>
@@ -490,184 +289,199 @@ Example:
 <div class="toast" id="toast"></div>
 
 <script>
-let templateData = { text: '', fileName: '' };
-let photoData = null;
+let tpl = {text:'',fileName:''};
+let photo = null;
 
+// Init
 window.onload = () => {
-  const saved = localStorage.getItem('pc_template');
-  if (saved) {
-    const t = JSON.parse(saved);
-    templateData = t;
-    showSavedTemplate(t.fileName || 'Custom template');
-  }
+  const s = localStorage.getItem('pc_tpl');
+  if(s){ tpl = JSON.parse(s); showSaved(tpl.fileName||'Custom format'); }
 };
 
-function goStep(n) {
-  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.step-tab').forEach(t => { t.classList.remove('active'); t.classList.remove('done'); });
-  document.getElementById('panel' + n).classList.add('active');
-  document.getElementById('tab' + n).classList.add('active');
-  for (let i = 1; i < n; i++) {
-    document.getElementById('tab' + i).classList.add('done');
-    document.getElementById('snum' + i).innerHTML = `<svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>`;
+function goStep(n){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.step').forEach(t=>{t.classList.remove('active','done')});
+  document.getElementById('panel'+n).classList.add('active');
+  document.getElementById('tab'+n).classList.add('active');
+  for(let i=1;i<n;i++){
+    document.getElementById('tab'+i).classList.add('done');
+    document.getElementById('sn'+i).innerHTML='<svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>';
   }
 }
 
-function handleTemplateUpload(input) {
-  const file = input.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  if (file.type.startsWith('image/')) {
-    reader.onload = e => {
-      templateData = { text: '', fileName: file.name, imageData: e.target.result };
-      showSavedTemplate(file.name);
-    };
-    reader.readAsDataURL(file);
+function handleTplFile(inp){
+  const f=inp.files[0]; if(!f) return;
+  const r=new FileReader();
+  if(f.type.startsWith('image/')){
+    r.onload=e=>{tpl={text:'',fileName:f.name,img:e.target.result};showSaved(f.name)};
+    r.readAsDataURL(f);
   } else {
-    reader.onload = e => {
-      templateData = { text: e.target.result, fileName: file.name };
-      showSavedTemplate(file.name);
-    };
-    reader.readAsText(file);
+    r.onload=e=>{tpl={text:e.target.result,fileName:f.name};showSaved(f.name)};
+    r.readAsText(f);
   }
 }
-
-function showSavedTemplate(name) {
-  document.getElementById('savedTemplateName').textContent = name;
-  document.getElementById('templateSaved').classList.add('visible');
-  document.getElementById('templateZone').style.display = 'none';
+function showSaved(n){
+  document.getElementById('savedName').textContent=n;
+  document.getElementById('savedBar').classList.add('on');
+  document.getElementById('upzone').style.display='none';
 }
-
-function clearTemplate() {
-  templateData = { text: '', fileName: '' };
-  localStorage.removeItem('pc_template');
-  document.getElementById('templateSaved').classList.remove('visible');
-  document.getElementById('templateZone').style.display = 'block';
-  document.getElementById('templateText').value = '';
-  document.getElementById('templateFile').value = '';
+function clearTpl(){
+  tpl={text:'',fileName:''};
+  localStorage.removeItem('pc_tpl');
+  document.getElementById('savedBar').classList.remove('on');
+  document.getElementById('upzone').style.display='block';
+  document.getElementById('tplText').value='';
 }
-
-function saveTemplate() {
-  const typed = document.getElementById('templateText').value.trim();
-  if (typed) templateData.text = typed;
-  if (!templateData.text && !templateData.imageData) {
-    showToast('Please upload a template or describe your format');
-    return;
-  }
-  localStorage.setItem('pc_template', JSON.stringify(templateData));
-  showSavedTemplate(templateData.fileName || 'Custom format');
+function saveTpl(){
+  const t=document.getElementById('tplText').value.trim();
+  if(t) tpl.text=t;
+  if(!tpl.text&&!tpl.img){showToast('Please upload a template or describe your format');return;}
+  localStorage.setItem('pc_tpl',JSON.stringify(tpl));
+  showSaved(tpl.fileName||'Custom format');
   showToast('Template saved!');
-  setTimeout(() => goStep(2), 600);
+  setTimeout(()=>goStep(2),500);
 }
 
-function toggleQtype(el) { el.classList.toggle('active'); }
+function tQt(el){el.classList.toggle('on')}
 
-function handlePhotoUpload(input) {
-  const file = input.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = e => {
-    photoData = e.target.result;
-    document.getElementById('photoPreview').src = e.target.result;
-    document.getElementById('photoPreviewArea').style.display = 'block';
+function handlePhoto(inp){
+  const f=inp.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=e=>{
+    photo=e.target.result;
+    document.getElementById('photoPreview').src=e.target.result;
+    document.getElementById('photoWrap').style.display='block';
   };
-  reader.readAsDataURL(file);
+  r.readAsDataURL(f);
 }
 
-async function generatePaper() {
-  const questions = document.getElementById('questionsText').value.trim();
-  const subject = document.getElementById('subject').value.trim();
-  const grade = document.getElementById('grade').value.trim();
-  const examType = document.getElementById('examType').value;
-  const totalMarks = document.getElementById('totalMarks').value.trim();
-
-  if (!questions && !photoData) { showToast('Please add your questions first'); return; }
-
-  const activeQtypes = [...document.querySelectorAll('.qtype-tag.active')].map(t => t.textContent).join(', ');
+async function generate(){
+  const q=document.getElementById('qText').value.trim();
+  if(!q&&!photo){showToast('Please add your questions');return;}
+  const subj=document.getElementById('subject').value.trim();
+  const grade=document.getElementById('grade').value.trim();
+  const exam=document.getElementById('examType').value;
+  const marks=document.getElementById('marks').value.trim();
+  const qtypes=[...document.querySelectorAll('.qt.on')].map(t=>t.textContent).join(', ');
+  const tplCtx=tpl.text?`TEMPLATE:\n${tpl.text}`:'Use standard Indian school question paper format with Section A (MCQ), B (Short Answer), C (Long Answer).';
 
   goStep(3);
-  document.getElementById('loadingBox').classList.add('visible');
-  document.getElementById('outputBox').classList.remove('visible');
-  document.getElementById('backBtns').style.display = 'none';
+  document.getElementById('loadBox').classList.add('on');
+  document.getElementById('outBox').classList.remove('on');
+  document.getElementById('backRow').style.display='none';
 
-  const stages = ['Reading your template...', 'Analysing question types...', 'Applying your school format...', 'Finalising the paper...'];
-  let si = 0;
-  const stageInterval = setInterval(() => {
-    document.getElementById('loadingStage').textContent = stages[si % stages.length]; si++;
-  }, 2200);
+  const stages=['Reading your template...','Organising questions...','Applying format...','Finalising paper...'];
+  let si=0;
+  const iv=setInterval(()=>{document.getElementById('lstage').textContent=stages[si++%stages.length]},2000);
+
+  const SYSTEM = `You are a question paper formatter for Indian schools. Your ONLY job is to output a clean, properly formatted question paper. 
+
+STRICT RULES:
+- Output ONLY the question paper itself. No explanations, no commentary, no "here is your paper", no "I have formatted", no preamble, no sign-off.
+- Do not ask questions or request more information.
+- Do not include any meta-text like "Note:", "Please check", "Best regards" or any conversational text.
+- Start directly with the school header and end with the last question. Nothing else.
+- Format cleanly with proper spacing and numbering.`;
+
+  const prompt=`${tplCtx}
+
+QUESTIONS TO FORMAT:
+${q}
+
+PAPER DETAILS:
+- Subject: ${subj||'Not specified'}
+- Class: ${grade||'Not specified'}
+- Exam: ${exam}
+- Total Marks: ${marks||'Distribute based on template'}
+- Question Types: ${qtypes}
+
+FORMAT INSTRUCTIONS:
+1. Start with header: [SCHOOL NAME] centered, then subject, class, date, time, max marks on separate lines
+2. Add standard instructions (e.g. All questions compulsory / attempt all sections)
+3. Organize into sections exactly as per the template
+4. Number all questions correctly and sequentially
+5. Add marks in brackets after each question e.g. [1 mark] or [5 marks]
+6. Keep formatting clean — use plain text only, no markdown symbols like ** or ##
+
+OUTPUT: The complete question paper only. Start with the school name header.`;
 
   try {
-    const templateContext = templateData.text
-      ? `TEMPLATE FORMAT:\n${templateData.text}`
-      : 'No specific template — use standard Indian school question paper format.';
+    const msgs = photo&&!q
+      ? [{role:'user',content:[{type:'image',source:{type:'base64',media_type:'image/jpeg',data:photo.split(',')[1]}},{type:'text',text:prompt}]}]
+      : [{role:'user',content:prompt}];
 
-    const messages = [];
-
-    if (photoData && !questions) {
-      messages.push({
-        role: 'user',
-        content: [
-          { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: photoData.split(',')[1] } },
-          { type: 'text', text: `Extract all questions from this image and format as a complete question paper.\n\n${templateContext}\n\nSubject: ${subject || 'Not specified'}\nClass: ${grade || 'Not specified'}\nExam: ${examType}\nTotal Marks: ${totalMarks || 'Distribute appropriately'}\nQuestion Types: ${activeQtypes}\n\nOutput ONLY the formatted paper — no explanations.` }
-        ]
-      });
-    } else {
-      messages.push({
-        role: 'user',
-        content: `You are an expert question paper formatter for Indian schools.\n\n${templateContext}\n\nQUESTIONS:\n${questions}\n\nDETAILS:\nSubject: ${subject || 'Not specified'}\nClass: ${grade || 'Not specified'}\nExam: ${examType}\nTotal Marks: ${totalMarks || 'Distribute appropriately'}\nQuestion Types: ${activeQtypes}\n\nFormat these into a complete print-ready question paper:\n1. Proper header with [SCHOOL NAME], subject, class, date, time, max marks\n2. Sections (A, B, C) based on question types\n3. Correct question numbering\n4. Marks in brackets per question\n5. Standard instructions at top\n6. Match the template exactly\n\nOutput ONLY the formatted paper text — no markdown, no explanations.`
-      });
-    }
-
-    // Call OUR backend — key never exposed to browser
-    const response = await fetch('/api/generate', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 2000, messages })
+    const res = await fetch('/api/generate',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'llama-3.3-70b-versatile',max_tokens:3000,system:SYSTEM,messages:msgs})
     });
-
-    clearInterval(stageInterval);
-
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.error || 'Server error');
-
-    const output = data.content.map(b => b.text || '').join('');
-    document.getElementById('loadingBox').classList.remove('visible');
-    document.getElementById('outputBox').classList.add('visible');
-    document.getElementById('paperOutput').textContent = output;
-    document.getElementById('backBtns').style.display = 'flex';
-
-  } catch (err) {
-    clearInterval(stageInterval);
-    document.getElementById('loadingBox').classList.remove('visible');
-    document.getElementById('outputBox').classList.add('visible');
-    document.getElementById('paperOutput').textContent = 'Error: ' + err.message;
-    document.getElementById('backBtns').style.display = 'flex';
+    clearInterval(iv);
+    const data=await res.json();
+    if(!res.ok) throw new Error(data.error||'Server error');
+    const text=data.choices?.[0]?.message?.content || data.content?.map(b=>b.text||'').join('')||'';
+    document.getElementById('loadBox').classList.remove('on');
+    document.getElementById('outBox').classList.add('on');
+    document.getElementById('paperOut').textContent=text;
+    document.getElementById('backRow').style.display='flex';
+  } catch(e){
+    clearInterval(iv);
+    document.getElementById('loadBox').classList.remove('on');
+    document.getElementById('outBox').classList.add('on');
+    document.getElementById('paperOut').textContent='Error: '+e.message;
+    document.getElementById('backRow').style.display='flex';
   }
 }
 
-function copyPaper() {
-  navigator.clipboard.writeText(document.getElementById('paperOutput').textContent)
-    .then(() => showToast('Copied to clipboard!'));
+function copyText(){
+  navigator.clipboard.writeText(document.getElementById('paperOut').textContent).then(()=>showToast('Copied!'));
 }
 
-function printPaper() {
-  const content = document.getElementById('paperOutput').textContent;
-  const w = window.open('', '_blank');
-  w.document.write(`<html><head><title>Question Paper</title><style>body{font-family:Arial,sans-serif;font-size:13px;line-height:1.8;padding:2.5rem;color:#111;white-space:pre-wrap;}@media print{body{padding:1rem;}}</style></head><body>${content.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</body></html>`);
-  w.document.close(); w.print();
+function printPaper(){
+  const c=document.getElementById('paperOut').textContent;
+  const w=window.open('','_blank');
+  w.document.write(`<html><head><title>Question Paper</title><style>body{font-family:Arial,sans-serif;font-size:13px;line-height:1.9;padding:2.5cm;color:#111;white-space:pre-wrap}@media print{body{padding:1.5cm}}</style></head><body>${c.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</body></html>`);
+  w.document.close();w.print();
 }
 
-function makeAnother() {
-  document.getElementById('questionsText').value = '';
-  document.getElementById('photoPreviewArea').style.display = 'none';
-  photoData = null;
+function exportWord(){
+  const c=document.getElementById('paperOut').textContent;
+  // Build proper Word HTML
+  const html=`<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+<head><meta charset='utf-8'><title>Question Paper</title>
+<style>
+body{font-family:Arial,sans-serif;font-size:12pt;line-height:1.8;margin:2.5cm}
+p{margin:6pt 0}
+</style></head><body><pre style="font-family:Arial,sans-serif;font-size:12pt;line-height:1.8;white-space:pre-wrap">${c.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</pre></body></html>`;
+  const blob=new Blob(['\ufeff'+html],{type:'application/msword'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download='question-paper.doc';a.click();
+  URL.revokeObjectURL(url);
+  showToast('Word file downloaded!');
+}
+
+function exportPDF(){
+  const c=document.getElementById('paperOut').textContent;
+  const w=window.open('','_blank');
+  w.document.write(`<html><head><title>Question Paper</title><style>
+body{font-family:Arial,sans-serif;font-size:13px;line-height:1.9;padding:2.5cm;color:#111;white-space:pre-wrap}
+@media print{body{padding:1.5cm} @page{margin:2cm}}
+</style></head><body>${c.replace(/</g,'&lt;').replace(/>/g,'&gt;')}<script>window.onload=()=>{window.print();}<\/script></body></html>`);
+  w.document.close();
+  showToast('PDF print dialog opened!');
+}
+
+function makeAnother(){
+  document.getElementById('qText').value='';
+  document.getElementById('photoWrap').style.display='none';
+  photo=null;
   goStep(2);
 }
 
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2800);
+function showToast(m){
+  const t=document.getElementById('toast');
+  t.textContent=m;t.classList.add('on');
+  setTimeout(()=>t.classList.remove('on'),2500);
 }
 </script>
 </body>
